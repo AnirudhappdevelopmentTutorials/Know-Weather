@@ -5,104 +5,164 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Know Weather</title>
   <style>
-    body, html {
-      margin: 0;
-      padding: 0;
-      height: 100%;
-      font-family: Arial, sans-serif;
-    }
     body {
+      font-family: Arial, sans-serif;
+      background: #f0f0f0;
       display: flex;
-      flex-direction: column;
       justify-content: center;
       align-items: center;
-      background: linear-gradient(to right, orange 50%, blue 50%);
+      height: 100vh;
+      margin: 0;
+      padding: 10px; /* Added padding for spacing */
+      flex-direction: column;
     }
-    h1 {
-      text-align: center;
-      color: white;
-      margin-top: 20px;
-      font-size: 2em; /* Larger title */
+
+    .branding h1 {
+      font-size: 1.5em; /* Adjusted font size */
+      margin: 0;
+      color: #333;
     }
-    h2 {
-      text-align: center;
-      color: white;
-      font-size: 0.5em; /* Smaller subtitle */
+
+    .branding h2 {
+      font-size: 0.8em; /* Adjusted font size */
+      margin: 0;
+      color: #666;
     }
+
     .weather-container {
-      background: rgba(255, 255, 255, 0.3);
-      padding: 40px; /* Larger padding */
-      border-radius: 15px; /* More rounded corners */
-      text-align: center;
-      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-      width: 90%; /* Wider container */
-      max-width: 600px; /* Limit maximum width */
+      background: #fff;
+      padding: 15px;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      width: 100%;
+      max-width: 350px; /* Adjusted max-width for smaller container */
+      margin-top: 20px; /* Added margin for spacing */
+      display: flex;
+      flex-direction: column;
+      align-items: center; /* Center align items horizontally */
+      justify-content: center; /* Center align items vertically */
     }
-    input[type="text"] {
-      padding: 20px; /* Larger padding */
-      width: 90%; /* Wider input field */
-      border: none;
-      border-radius: 10px; /* More rounded corners */
-      margin-bottom: 20px; /* More margin */
-      font-size: 1.2em; /* Larger text */
+
+    input, button {
+      width: calc(100% - 16px); /* Adjusted width to accommodate border */
+      padding: 8px;
+      margin: 8px 0;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      font-size: 0.9em; /* Adjusted font size */
+      box-sizing: border-box; /* Ensures padding is included in width calculation */
     }
+
     button {
-      padding: 15px 30px; /* Larger button */
-      border: none;
-      border-radius: 10px; /* More rounded corners */
       background-color: #4CAF50;
       color: white;
       cursor: pointer;
-      font-size: 1.2em; /* Larger text */
     }
-    button:hover {
-      background-color: #45a049;
-    }
+
     .result {
-      margin-top: 30px; /* More margin */
-      color: white;
-      font-size: 1.5em; /* Larger text */
+      margin-top: 15px;
+      font-size: 0.9em; /* Adjusted font size */
+      text-align: left; /* Ensures text alignment */
+    }
+
+    .day {
+      margin-bottom: 15px;
+    }
+
+    .hour {
+      min-width: 80px; /* Adjusted min-width for hourly items */
+      padding: 5px;
+      border-right: 1px solid #ddd;
+      font-size: 0.8em; /* Adjusted font size */
+    }
+
+    .reset-button {
+      margin-top: 15px;
+      padding: 8px 20px;
+      background-color: #ccc;
+      color: #333;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 0.9em; /* Adjusted font size */
+    }
+
+    @media (max-width: 600px) {
+      .weather-container {
+        max-width: 100%; /* Adjusted max-width for smaller screens */
+      }
+
+      .hour {
+        min-width: 60px; /* Adjusted min-width for smaller screens */
+      }
     }
   </style>
 </head>
 <body>
-  <h1>Know Weather</h1>
-  <h2>A Product Of Anirudhappdevelopmet Inc</h2>
+  <div class="branding">
+    <h1>Know Weather</h1>
+    <h2>A Product Of Anirudhappdevelopmet Inc</h2>
+  </div>
   <div class="weather-container">
     <input type="text" id="city" placeholder="Enter city name">
     <button id="weatherButton">Get Weather</button>
     <div class="result" id="result"></div>
+    <button class="reset-button" id="resetButton" style="display:none;">Search Again</button>
   </div>
 
   <script>
-    document.getElementById('weatherButton').addEventListener('click', async () => {
-      const city = document.getElementById('city').value;
-      // Replace with your actual WeatherAPI.com API key
-      const apiKey = "6ec283d28900403ebfb123418242006";
-      const baseUrl = "https://api.weatherapi.com/v1/current.json";
+    const weatherButton = document.getElementById('weatherButton');
+    const resetButton = document.getElementById('resetButton');
 
-      // Build the URL with city and API key
-      const url = `${baseUrl}?key=${apiKey}&q=${city}`;
+    weatherButton.addEventListener('click', async () => {
+      const city = document.getElementById('city').value;
+      const apiKey = "6ec283d28900403ebfb123418242006";
+      const baseUrl = "https://api.weatherapi.com/v1/forecast.json";
+      const url = `${baseUrl}?key=${apiKey}&q=${city}&days=3`;
 
       try {
         const response = await fetch(url);
         const data = await response.json();
         
         if (data.error) {
-          // Handle errors (e.g., city not found)
           document.getElementById('result').innerText = data.error.message;
+          resetButton.style.display = 'none'; // Hide reset button on error
         } else {
-          const weather = data.current.condition.text;
-          const temperature = data.current.temp_c;
+          const forecast = data.forecast.forecastday;
           const resultDiv = document.getElementById('result');
-          resultDiv.innerHTML = `
-            <p><strong>Weather:</strong> ${weather}</p>
-            <p><strong>Temperature:</strong> ${temperature}°C</p>
-          `;
+          let forecastHTML = '';
+
+          forecast.forEach(day => {
+            forecastHTML += `
+              <div class="day">
+                <p><strong>Date:</strong> ${day.date}</p>
+                <div class="hourly">
+                  ${day.hour.map(hour => `
+                    <div class="hour">
+                      <p><strong>${hour.time.split(' ')[1]}</strong></p>
+                      <p>${hour.temp_c}°C</p>
+                      <p>${hour.condition.text}</p>
+                    </div>
+                  `).join('')}
+                </div>
+              </div>
+              <hr>
+            `;
+          });
+
+          resultDiv.innerHTML = forecastHTML;
+          resetButton.style.display = 'block'; // Show reset button after successful search
         }
       } catch (error) {
         document.getElementById('result').innerText = 'Error fetching weather data!';
+        resetButton.style.display = 'none'; // Hide reset button on error
       }
+    });
+
+    resetButton.addEventListener('click', () => {
+      document.getElementById('city').value = '';
+      document.getElementById('result').innerHTML = '';
+      resetButton.style.display = 'none'; // Hide reset button after reset
     });
   </script>
 </body>
